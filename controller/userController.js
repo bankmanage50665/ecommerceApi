@@ -72,7 +72,7 @@ async function sendOTP(req, res, next) {
 
     
 
-    const user = await User.findOneAndUpdate(
+    const user = await User.findOneAndUpdat(
       { phoneNumber },
 
       {
@@ -82,15 +82,17 @@ async function sendOTP(req, res, next) {
       { new: true, upsert: true } // Create a new user if not found
     );
 
+    console.log(user)
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    await client.messages.create({
-      body: `Trendify: Your OTP is: ${otp}`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: `+91${phoneNumber}`,
-    });
+    // await client.messages.create({
+    //   body: `Trendify: Your OTP is: ${otp}`,
+    //   from: process.env.TWILIO_PHONE_NUMBER,
+    //   to: `+91${phoneNumber}`,
+    // });
 
     console.log(otp)
 
