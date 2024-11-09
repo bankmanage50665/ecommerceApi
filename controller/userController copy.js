@@ -51,55 +51,6 @@ async function register(req, res, next) {
   });
 }
 
-// async function sendOTP(req, res, next) {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return next(new HttpError("Invalid user credentials", 401));
-//   }
-
-//   const { phoneNumber } = req.body;
-
-//   console.log(phoneNumber);
-
-//   const otp = OTPGenerator.generate(4, {
-//     upperCaseAlphabets: false,
-//     lowerCaseAlphabets: false,
-//     specialChars: false,
-//   });
-
-//   try {
-//     const user = await User.findOneAndUpdate(
-//       { phoneNumber },
-
-//       {
-//         otp,
-//         otpExpiration: new Date(Date.now() + 5 * 60 * 1000), // OTP expires in 5 minutes
-//       },
-//       { new: true, upsert: true } // Create a new user if not found
-//     );
-
-//     console.log(user);
-
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     await client.messages.create({
-//       body: `Trendify: Your OTP is: ${otp}`,
-//       from: process.env.TWILIO_PHONE_NUMBER,
-//       to: `+91${phoneNumber}`,
-//     });
-
-//     console.log(otp);
-
-//     res.status(200).json({ message: "OTP sent successfully", otp });
-//   } catch (err) {
-//     return next(
-//       new HttpError("Field to send otp, Please try agin later.", 500)
-//     );
-//   }
-// }
-
 async function sendOTP(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -107,7 +58,6 @@ async function sendOTP(req, res, next) {
   }
 
   const { phoneNumber } = req.body;
-  console.log(phoneNumber);
 
   const otp = OTPGenerator.generate(4, {
     upperCaseAlphabets: false,
@@ -115,17 +65,17 @@ async function sendOTP(req, res, next) {
     specialChars: false,
   });
 
-  console.log(otp);
+
 
   try {
-    const user = await User.findOneAndUpdate(
-      // Fixed typo here
+    const user = await User.findOneAndUpdat(
       { phoneNumber },
+
       {
         otp,
-        otpExpiration: new Date(Date.now() + 5 * 60 * 1000),
+        otpExpiration: new Date(Date.now() + 5 * 60 * 1000), // OTP expires in 5 minutes
       },
-      { new: true, upsert: true }
+      { new: true, upsert: true } // Create a new user if not found
     );
 
     console.log(user);
@@ -134,29 +84,18 @@ async function sendOTP(req, res, next) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Wrap Twilio API call in try-catch for better error handling
-    try {
-      await client.messages.create({
-        body: `Trendify: Your OTP is: ${otp}`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: `+91${phoneNumber}`,
-      });
-    } catch (twilioError) {
-      console.error("Twilio Error:", twilioError);
-      return next(
-        new HttpError(
-          "Failed to send SMS. Please check phone number or try again later.",
-          500
-        )
-      );
-    }
+    // await client.messages.create({
+    //   body: `Trendify: Your OTP is: ${otp}`,
+    //   from: process.env.TWILIO_PHONE_NUMBER,
+    //   to: `+91${phoneNumber}`,
+    // });
 
     console.log(otp);
+
     res.status(200).json({ message: "OTP sent successfully", otp });
   } catch (err) {
-    console.error("Database Error:", err);
     return next(
-      new HttpError("Failed to send OTP. Please try again later.", 500)
+      new HttpError("Field to send otp, Please try agin later.", 500)
     );
   }
 }
